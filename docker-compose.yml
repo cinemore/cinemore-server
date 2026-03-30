@@ -1,0 +1,65 @@
+name: cinemore
+
+services:
+  cinemore-server:
+    image: cinemore/cinemore-server:latest
+    container_name: cinemore-server
+    ports:
+      - "8080:8000"
+    volumes:
+      # 配置文件目录映射
+      - ./data:/app/data
+      # 媒体文件目录映射
+      - ./media:/media
+      # 多路径映射示例（取消注释使用）
+      # - /path/to/1:/media/movies1
+      # - /path/to/2:/media/movies2
+      # - /path/to/3:/media/tv1
+      # - /path/to/4:/media/tv2
+    environment:
+      - TZ=Asia/Shanghai
+      - PORT=8000
+      - DATA_PATH=/app/data
+      - MEDIA_PATH=/media
+      - DB_TYPE=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=cinemore_password
+      - POSTGRES_DB=cinemore
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - cinemore-network
+
+  postgres:
+    image: postgres:17
+    container_name: cinemore-postgres
+    environment:
+      POSTGRES_DB: cinemore
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: cinemore_password
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cinemore-network
+
+networks:
+  cinemore-network:
+    driver: bridge

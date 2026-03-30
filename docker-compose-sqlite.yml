@@ -1,0 +1,23 @@
+name: cinemore
+
+services:
+  cinemore-server:
+    image: cinemore/cinemore-server:latest
+    container_name: cinemore-server
+    ports:
+      - "8080:8000"
+    volumes:
+      # 配置文件目录映射
+      - ./data:/app/data
+      # 媒体文件目录映射
+      - ./media:/media
+      # 多路径映射示例
+      # - /path/to/1:/media/movies1
+      # - /path/to/2:/media/movies2
+      # - /path/to/3:/media/tv1
+      # - /path/to/4:/media/tv2
+    environment:
+      - TZ=Asia/Shanghai
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
